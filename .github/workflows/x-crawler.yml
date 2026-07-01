@@ -26,4 +26,4 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-        run: node scripts/x-crawler.js
+        run: node scripts/x-crawler.cjs

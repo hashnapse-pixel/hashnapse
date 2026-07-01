@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Ticket, Sparkles, Play, Tv } from 'lucide-react';
+import { AdMob, InterstitialAdPluginEvents } from '@capacitor-community/admob';
 import { dataService } from '../services/dataService';
 import type { UserAsset } from '../services/dataService';
 import { useAlert } from './AlertContext';
@@ -47,9 +48,40 @@ export const Dashboard: React.FC<DashboardProps> = ({ currentRoomId, asset, onUp
     }
   };
 
-  const handleWatchAd = () => {
-    setIsWatchingAd(true);
-    setAdCountdown(3);
+  useEffect(() => {
+    const initAdMob = async () => {
+      try {
+        await AdMob.initialize();
+      } catch (err) {
+        console.log('AdMob initialize skipped or failed:', err);
+      }
+    };
+    initAdMob();
+  }, []);
+
+  const handleWatchAd = async () => {
+    try {
+      const options = {
+        adId: 'ca-app-pub-3940256099942544/1033173712', // 테스트용 Android 전면 광고 ID
+        isTesting: true
+      };
+      
+      await AdMob.prepareInterstitial(options);
+      
+      const dismissListener = await AdMob.addListener(
+        InterstitialAdPluginEvents.Dismissed,
+        async () => {
+          await dismissListener.remove();
+          await completeAdWatching();
+        }
+      );
+
+      await AdMob.showInterstitial();
+    } catch (err) {
+      console.log('AdMob interstitial fallback active:', err);
+      setIsWatchingAd(true);
+      setAdCountdown(3);
+    }
   };
 
   useEffect(() => {
