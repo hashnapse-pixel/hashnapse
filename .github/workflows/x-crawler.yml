@@ -15,7 +15,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       # 크롤러 기동에 필수적인 Supabase 및 RSS 파서 패키지만 독립 설치 (피어 의존성 충돌 회피)
       - name: Install dependencies
