@@ -17,10 +17,6 @@ export interface UserAsset {
   availableVotes: number;      // 사용 가능한 투표권 (팬심)
   pendingVotes: number;        // 당일 트윗 언급으로 획득했으나 아직 23:00 집계 전인 투표권
   scheduledVotes: number;      // 23:00에 집계되어 익일 00:00에 지급되기 위해 대기 중인 투표권
-  lastRewardSync?: string;     // 마지막으로 23:00 집계 및 00:00 지급 동기화 처리를 한 타임스탬프
-  totalSteps?: number;         // 레거시 빌드 호환용
-  claimedSteps?: number;       // 레거시 빌드 호환용
-  claimedCaloriesDate?: string; // 레거시 빌드 호환용
 }
 
 export interface UserVote {
@@ -358,8 +354,6 @@ export const dataService = {
         // 2. 이메일+방 기준 자산 동기화
         if (!err2 && asset) {
           const mappedAsset: UserAsset = {
-            totalSteps: asset.total_steps || 0,
-            claimedSteps: asset.claimed_steps || 0,
             availableVotes: asset.available_votes || 0,
             pendingVotes: asset.pending_votes || 0,
             scheduledVotes: asset.scheduled_votes || 0
@@ -370,8 +364,6 @@ export const dataService = {
             {
               id: email,
               room_id: roomId,
-              total_steps: INITIAL_ASSETS.totalSteps || 0,
-              claimed_steps: INITIAL_ASSETS.claimedSteps || 0,
               available_votes: INITIAL_ASSETS.availableVotes
             }
           ]);
@@ -521,8 +513,6 @@ export const dataService = {
         await supabase.from('user_assets').upsert({
           id: email,
           room_id: roomId,
-          total_steps: asset.totalSteps || 0,
-          claimed_steps: asset.claimedSteps || 0,
           available_votes: asset.availableVotes || 0,
           pending_votes: asset.pendingVotes || 0,
           scheduled_votes: asset.scheduledVotes || 0
@@ -986,106 +976,7 @@ export const dataService = {
     }
   },
 
-  // ==================== [ 칼로리 정보 연동 및 수동 입력 ] ====================
 
-  // 1. 건강앱 소모 칼로리 연동 (일 1회 제한, 방별 격리)
-  async claimHealthCalories(roomId: string = 'global'): Promise<{ success: boolean; message: string; caloriesClaimed: number; rewardsGranted: number }> {
-    const email = await this.getCurrentUserEmail();
-    if (!email) throw new Error('로그인이 필요합니다.');
-
-    const assets = await this.getUserAsset(roomId);
-    const todayStr = new Date().toISOString().split('T')[0];
-
-    if (assets.claimedCaloriesDate === todayStr) {
-      return {
-        success: false,
-        message: '건강앱 칼로리 연동은 일 1회만 가능합니다. 내일 다시 연동해 주세요!',
-        caloriesClaimed: 0,
-        rewardsGranted: 0
-      };
-    }
-
-    // 건강앱 연동 모킹 데이터 생성 (300~600kcal 무작위 획득)
-    const mockedCalories = Math.floor(Math.random() * 301) + 300;
-    // 300kcal당 1 포인트 지급 (소수점 버림)
-    const rewards = Math.floor(mockedCalories / 300);
-
-    assets.availableVotes += rewards;
-    assets.claimedCaloriesDate = todayStr;
-    await this.saveUserAsset(roomId, assets);
-
-    // 기록 로그 추가
-    const records = getLocal<CalorieRecord[]>('calorie_records_list', []);
-    const newRecord: CalorieRecord = {
-      id: `cal-${Date.now()}`,
-      userEmail: email,
-      date: todayStr,
-      calories: mockedCalories,
-      photoUrl: 'HEALTH_APP_SYNCED' // 건강앱 연동 표시
-    };
-    setLocal('calorie_records_list', [...records, newRecord]);
-
-    return {
-      success: true,
-      message: `건강앱에서 오늘 소모한 ${mockedCalories}kcal 정보를 성공적으로 불러왔습니다!\n보상으로 ${rewards}팬심이 추가 지급되었습니다.`,
-      caloriesClaimed: mockedCalories,
-      rewardsGranted: rewards
-    };
-  },
-
-  // 2. 수동 칼로리 기록 등록 (사진 파일 필수, 방별 격리)
-  async addCalorieRecord(roomId: string = 'global', calories: number, photoBase64: string): Promise<CalorieRecord> {
-    const email = await this.getCurrentUserEmail();
-    if (!email) throw new Error('로그인이 필요합니다.');
-    if (calories <= 0) throw new Error('올바른 칼로리 값을 입력해주세요.');
-    if (!photoBase64) throw new Error('운동을 증명할 사진을 첨부해야 수동 등록이 가능합니다.');
-
-    const todayStr = new Date().toISOString().split('T')[0];
-    const newRecord: CalorieRecord = {
-      id: `cal-${Date.now()}`,
-      userEmail: email,
-      date: todayStr,
-      calories,
-      photoUrl: photoBase64
-    };
-
-    const records = getLocal<CalorieRecord[]>('calorie_records_list', []);
-    setLocal('calorie_records_list', [...records, newRecord]);
-
-    // 수동 칼로리 등록 시에도 소량의 응원 포인트 제공 (예: 500kcal당 1 P)
-    const rewards = Math.floor(calories / 500);
-    if (rewards > 0) {
-      const assets = await this.getUserAsset(roomId);
-      assets.availableVotes += rewards;
-      await this.saveUserAsset(roomId, assets);
-    }
-
-    if (supabase) {
-      try {
-        // 보안 및 개인정보 보장을 위해 서버(Supabase)에는 절대 사진 데이터를 전송/저장하지 않음
-        await supabase.from('calorie_records').insert([
-          {
-            id: newRecord.id,
-            user_email: email,
-            calories
-          }
-        ]);
-      } catch (err) {
-        console.error('Supabase write calorie record err:', err);
-      }
-    }
-
-    return newRecord;
-  },
-
-  // 3. 내 칼로리 연동 내역들 가져오기
-  async getCalorieRecords(): Promise<CalorieRecord[]> {
-    const email = await this.getCurrentUserEmail();
-    if (!email) return [];
-
-    const records = getLocal<CalorieRecord[]>('calorie_records_list', []);
-    return records.filter(r => r.userEmail === email);
-  },
 
   // ==================== [ 방 멤버 퇴출(강퇴) 투표 로직 ] ====================
 

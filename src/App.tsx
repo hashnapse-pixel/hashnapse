@@ -21,8 +21,6 @@ function App() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [characters, setCharacters] = useState<Character[]>([]);
   const [asset, setAsset] = useState<UserAsset>({
-    totalSteps: 0,
-    claimedSteps: 0,
     availableVotes: 0,
     pendingVotes: 0,
     scheduledVotes: 0
