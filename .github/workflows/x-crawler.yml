@@ -17,19 +17,13 @@ jobs:
         with:
           node-version: 20
 
-      # node_modules 캐시 혹은 인스톨
+      # 크롤러 기동에 필수적인 Supabase 및 RSS 파서 패키지만 독립 설치 (피어 의존성 충돌 회피)
       - name: Install dependencies
         run: |
-          if [ -f package-lock.json ]; then
-            npm ci
-          else
-            npm install
-          fi
-          npm install @supabase/supabase-js node-fetch xml2js
+          npm install @supabase/supabase-js node-fetch xml2js --no-save
 
       - name: Run Crawler Script
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          TWITTER_BEARER_TOKEN: ${{ secrets.TWITTER_BEARER_TOKEN }}
         run: node scripts/x-crawler.js
