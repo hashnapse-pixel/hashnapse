@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Ticket, Sparkles, Play, Tv } from 'lucide-react';
 import { AdMob, InterstitialAdPluginEvents } from '@capacitor-community/admob';
+import { Capacitor } from '@capacitor/core';
 import { dataService } from '../services/dataService';
 import type { UserAsset } from '../services/dataService';
 import { useAlert } from './AlertContext';
@@ -61,8 +62,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ currentRoomId, asset, onUp
 
   const handleWatchAd = async () => {
     try {
+      const platform = Capacitor.getPlatform();
+      const adId = platform === 'ios'
+        ? 'ca-app-pub-3940256099942544/4411468910'
+        : 'ca-app-pub-3940256099942544/1033173712';
+
       const options = {
-        adId: 'ca-app-pub-3940256099942544/1033173712', // 테스트용 Android 전면 광고 ID
+        adId: adId,
         isTesting: true
       };
       
