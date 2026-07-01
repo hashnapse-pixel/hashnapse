@@ -1177,10 +1177,10 @@ export const dataService = {
     };
   },
 
-  // 광고 시청 후 1,000 포인트 즉시 지급 (방별 격리)
+  // 광고 시청 후 10 포인트 즉시 지급 (방별 격리)
   async claimAdReward(roomId: string = 'global'): Promise<UserAsset> {
     const assets = await this.getUserAsset(roomId);
-    assets.availableVotes = (assets.availableVotes || 0) + 1000;
+    assets.availableVotes = (assets.availableVotes || 0) + 10;
     await this.saveUserAsset(roomId, assets);
     return assets;
   }

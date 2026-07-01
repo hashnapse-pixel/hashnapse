@@ -69,7 +69,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ currentRoomId, asset, onUp
       const updatedAsset = await dataService.claimAdReward(currentRoomId);
       onUpdateAsset(updatedAsset);
       setIsWatchingAd(false);
-      showToast('📺 광고 시청 완료! 1,000 포인트가 지급되었습니다. 🎉', 'success');
+      showToast('📺 광고 시청 완료! 10 포인트가 지급되었습니다. 🎉', 'success');
     } catch (err: any) {
       showAlert(err.message || '광고 보상 지급 중 오류가 발생했습니다.');
       setIsWatchingAd(false);
@@ -156,7 +156,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ currentRoomId, asset, onUp
           무료 포인트 충전소 (Point Station)
         </h3>
         <p style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', marginBottom: '16px', lineHeight: '1.4' }}>
-          📺 3초 광고를 시청하시면 모의 거래 및 캐릭터 거래에 사용할 수 있는 포인트 <strong style={{ color: '#a855f7' }}>1,000 P</strong>를 무제한으로 충전해 드립니다!
+          📺 3초 광고를 시청하시면 모의 거래 및 캐릭터 거래에 사용할 수 있는 포인트 <strong style={{ color: '#a855f7' }}>10 P</strong>를 무제한으로 즉시 충전해 드립니다!
         </p>
 
         <button 
@@ -177,7 +177,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ currentRoomId, asset, onUp
           }}
         >
           <Play size={16} fill="currentColor" />
-          포인트 1,000 P 수령하기
+          포인트 10 P 수령하기
         </button>
       </div>
 
@@ -188,7 +188,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ currentRoomId, asset, onUp
           X(Twitter) 포스팅 보상 적립기
         </h3>
         <p style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', marginBottom: '16px', lineHeight: '1.4' }}>
-          💡 사용자의 X 계정을 연동한 뒤, X(Twitter)에 필수 해시태그(<strong style={{ color: 'white' }}>#해시냅스</strong>) 혹은 계정 태그(<strong style={{ color: 'white' }}>@hashnapse</strong>)가 포함된 트윗을 포스팅하고, 아래의 입력창에 작성한 글을 입력하면 X API 크롤러가 감지 및 검증하여 포인트(1 P)를 지급합니다. (일 최대 10회 제한, 매일 23:00 집계 및 익일 00:00 지급)
+          💡 X 계정이 로그인 연동된 상태에서, x.com에 필수 해시태그(<strong style={{ color: 'white' }}>#해시냅스</strong>) 또는 계정 태그(<strong style={{ color: 'white' }}>@hashnapse</strong>)가 포함된 트윗을 작성하시면 10분 간격으로 작동하는 GitHub Action 크롤러가 이를 실시간 감지하여 글 1개당 <strong style={{ color: 'var(--color-warning)' }}>1 P</strong>를 내 지갑으로 즉시 자동 적립해 드립니다.
         </p>
 
         {/* 🐦 공식 X 계정 바로가기 외부 링크 버튼 */}
