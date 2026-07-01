@@ -62,7 +62,7 @@ export const RegisterCharacter: React.FC<RegisterCharacterProps> = ({ currentRoo
         resolvedGenre, 
         group.trim().toUpperCase()
       );
-      await showAlert(`🎉 새로운 캐릭터 [ $${group.trim().toUpperCase()} ]이 성공적으로 상장되었습니다!\n상장 수수료 1,000 P가 차감되었습니다.`);
+      await showAlert(`🎉 새로운 캐릭터 [ $${group.trim().toUpperCase()} ]이 성공적으로 상장되었습니다!\n상장 수수료 100 P가 차감되었으며, 최초 발행자 지분 1% (10,000 장)가 즉시 지급되었습니다.`);
       
       setName('');
       setDescription('');
@@ -87,7 +87,7 @@ export const RegisterCharacter: React.FC<RegisterCharacterProps> = ({ currentRoo
       </div>
 
       <p style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginBottom: '20px' }}>
-        🔥 나만의 독창적인 아이디어와 최애 캐릭터를 무료로 상장하여 널리 알려보세요! 상장 수수료로 **1,000 P**가 차감되며, 생성 즉시 캐릭터 거래소에 상장됩니다.
+        🔥 나만의 독창적인 아이디어와 최애 캐릭터를 상장하여 널리 알려보세요! 상장 수수료로 **100 P**가 차감되며 100만 장이 발행됩니다. (생성 즉시 최초 발행자에게 지분 1%인 10,000 장이 무료 포상 지급됩니다.)
       </p>
 
       <form onSubmit={handleSubmit} className="card" style={{ padding: '24px 20px' }}>
@@ -171,7 +171,7 @@ export const RegisterCharacter: React.FC<RegisterCharacterProps> = ({ currentRoo
           style={{ marginTop: '10px' }}
         >
           <PlusCircle size={18} />
-          {isSubmitting ? '상장 진행 중...' : '🔥 최애 캐릭터 상장하기 (수수료 1,000 P)'}
+          {isSubmitting ? '상장 진행 중...' : '🔥 최애 캐릭터 상장하기 (수수료 100 P)'}
         </button>
       </form>
     </div>

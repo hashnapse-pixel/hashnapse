@@ -11,6 +11,10 @@ export interface Character {
   roomId?: string;            // 방(Room) ID 필드 추가
   genre?: string;             // 장르 추가
   group?: string;             // 그룹 추가
+  totalSupply: number;        // 총 발행량 (최초 100만 장)
+  marketSupply: number;       // 시장 공급 물량 (최초 99만 장)
+  salesCount: number;         // 누적 판매 수량 (최초 0)
+  creator?: string;           // 최초 상장자 이메일
 }
 
 export interface UserAsset {
@@ -64,7 +68,11 @@ const INITIAL_CHARACTERS: Character[] = [
     voteChangeRate: 15.4,
     voteHistory: [300, 310, 315, 320, 330, 340, 345, 350],
     genre: '애니메이션',
-    group: 'SPARK'
+    group: 'SPARK',
+    totalSupply: 1000000,
+    marketSupply: 990000,
+    salesCount: 0,
+    creator: 'system'
   },
   {
     id: 'char-2',
@@ -75,7 +83,11 @@ const INITIAL_CHARACTERS: Character[] = [
     voteChangeRate: 110.2,
     voteHistory: [390, 450, 520, 600, 680, 720, 790, 820],
     genre: '애니메이션',
-    group: 'PANDA'
+    group: 'PANDA',
+    totalSupply: 1000000,
+    marketSupply: 990000,
+    salesCount: 0,
+    creator: 'system'
   },
   {
     id: 'char-3',
@@ -86,7 +98,11 @@ const INITIAL_CHARACTERS: Character[] = [
     voteChangeRate: 45.9,
     voteHistory: [370, 390, 420, 450, 480, 500, 520, 540],
     genre: '밈',
-    group: 'GOLDD'
+    group: 'GOLDD',
+    totalSupply: 1000000,
+    marketSupply: 990000,
+    salesCount: 0,
+    creator: 'system'
   },
   {
     id: 'char-4',
@@ -97,7 +113,11 @@ const INITIAL_CHARACTERS: Character[] = [
     voteChangeRate: 85.2,
     voteHistory: [800, 850, 920, 980, 1050, 1100, 1150, 1200],
     genre: '웹소설',
-    group: 'ARTHUR'
+    group: 'ARTHUR',
+    totalSupply: 1000000,
+    marketSupply: 990000,
+    salesCount: 0,
+    creator: 'system'
   },
   {
     id: 'char-5',
@@ -108,7 +128,11 @@ const INITIAL_CHARACTERS: Character[] = [
     voteChangeRate: -12.4,
     voteHistory: [1050, 1080, 1100, 1080, 1020, 980, 960, 950],
     genre: '웹툰',
-    group: 'HARU'
+    group: 'HARU',
+    totalSupply: 1000000,
+    marketSupply: 990000,
+    salesCount: 0,
+    creator: 'system'
   },
   {
     id: 'char-6',
@@ -119,7 +143,11 @@ const INITIAL_CHARACTERS: Character[] = [
     voteChangeRate: 154.2,
     voteHistory: [600, 750, 900, 1100, 1250, 1380, 1460, 1540],
     genre: '게임',
-    group: 'KAEL'
+    group: 'KAEL',
+    totalSupply: 1000000,
+    marketSupply: 990000,
+    salesCount: 0,
+    creator: 'system'
   },
   {
     id: 'char-7',
@@ -130,7 +158,11 @@ const INITIAL_CHARACTERS: Character[] = [
     voteChangeRate: 25.8,
     voteHistory: [1200, 1350, 1420, 1480, 1520, 1600, 1650, 1720],
     genre: '버추얼',
-    group: 'LIA'
+    group: 'LIA',
+    totalSupply: 1000000,
+    marketSupply: 990000,
+    salesCount: 0,
+    creator: 'system'
   }
 ];
 
@@ -345,7 +377,11 @@ export const dataService = {
               voteHistory: history,
               genre: c.genre,
               group: c.group,
-              roomId: c.room_id
+              roomId: c.room_id,
+              totalSupply: c.total_supply || 1000000,
+              marketSupply: c.market_supply !== undefined ? c.market_supply : 990000,
+              salesCount: c.sales_count || 0,
+              creator: c.creator || 'system'
             };
           });
           setLocal(`characters_list_${roomId}`, mappedChars);
@@ -395,7 +431,7 @@ export const dataService = {
     return getLocal<Character[]>(`characters_list_${roomId}`, roomId === 'global' ? INITIAL_CHARACTERS : []);
   },
 
-  // 2. 캐릭터 등록하기 (해당 방에 상장, 상장 수수료 10 P 차감)
+  // 2. 캐릭터 등록하기 (해당 방에 상장, 상장 수수료 100 P 차감, 100만 장 발행 및 발행자 1% 지급)
   async registerCharacter(roomId: string = 'global', name: string, description: string, imageUrl: string, genre: string, group: string): Promise<Character> {
     const cleanName = name.replace(/\s/g, '');
     
@@ -413,27 +449,42 @@ export const dataService = {
     }
 
     const assets = await this.getUserAsset(roomId);
-    if (assets.availableVotes < 1000) {
-      throw new Error(`상장 수수료(1,000 P)가 부족하여 상장할 수 없습니다. (보유: ${assets.availableVotes} P)`);
+    if (assets.availableVotes < 100) {
+      throw new Error(`상장 수수료(100 P)가 부족하여 상장할 수 없습니다. (보유: ${assets.availableVotes} P)`);
     }
 
-    assets.availableVotes -= 1000;
+    assets.availableVotes -= 100;
     await this.saveUserAsset(roomId, assets);
+
+    const email = await this.getCurrentUserEmail() || 'system';
 
     const newChar: Character = {
       id: `char-${Date.now()}`,
       name: cleanName,
       description: description || '새롭게 등록된 캐릭터입니다.',
       imageUrl: imageUrl || 'https://images.unsplash.com/photo-1535268647977-a403b69fc756?w=200&auto=format&fit=crop&q=60',
-      votes: 10,
+      votes: 10000, // 최초 상장자 지분 1%
       voteChangeRate: 0,
-      voteHistory: [10],
+      voteHistory: [10000],
       roomId: roomId,
       genre: genre || '기타',
-      group: group || '개인'
+      group: group || '개인',
+      totalSupply: 1000000,
+      marketSupply: 990000,
+      salesCount: 0,
+      creator: email
     };
 
     setLocal(`characters_list_${roomId}`, [...currentList, newChar]);
+
+    // 🌟 상장 신청한 최초 발행자에게 지분 1% (10,000 장) 보상 지급
+    const userVotes = getLocal<UserVote[]>(`user_votes_list_${roomId}`, []);
+    userVotes.push({
+      characterId: newChar.id,
+      votedQuantity: 10000,
+      roomId: roomId
+    });
+    setLocal(`user_votes_list_${roomId}`, userVotes);
 
     if (supabase) {
       try {
@@ -448,11 +499,22 @@ export const dataService = {
             vote_history: newChar.voteHistory,
             room_id: roomId,
             genre: newChar.genre,
-            group: newChar.group
+            group: newChar.group,
+            total_supply: newChar.totalSupply,
+            market_supply: newChar.marketSupply,
+            sales_count: newChar.salesCount,
+            creator: newChar.creator
           }
         ]);
+
+        await supabase.from('user_votes').upsert({
+          user_id: email,
+          character_id: newChar.id,
+          voted_quantity: 10000,
+          room_id: roomId
+        });
       } catch (err) {
-        console.error('Supabase write characters err:', err);
+        console.error('Supabase write characters and creator bonus err:', err);
       }
     }
 
@@ -533,16 +595,71 @@ export const dataService = {
     const email = await this.getCurrentUserEmail();
     if (!email) return { success: false, message: '로그인이 필요합니다.' };
 
+    const characters = getLocal<Character[]>(`characters_list_${roomId}`, roomId === 'global' ? INITIAL_CHARACTERS : []);
+    const charIndex = characters.findIndex(c => c.id === characterId);
+    if (charIndex < 0) {
+      return { success: false, message: '캐릭터 정보를 찾을 수 없습니다.' };
+    }
+    const char = characters[charIndex];
+
+    // 시장 공급 물량 한도 체크
+    if (char.marketSupply < quantity) {
+      return { success: false, message: `시장에 남은 공급 물량이 부족합니다. (현재 구매 가능: ${char.marketSupply} 장)` };
+    }
+
     const assets = await this.getUserAsset(roomId);
     if (assets.availableVotes < quantity) {
       return { success: false, message: `보유한 미사용 포인트가 부족합니다. (남은 포인트: ${assets.availableVotes} P)` };
     }
 
     assets.availableVotes -= quantity;
+    char.marketSupply -= quantity;
+    char.salesCount += quantity;
+    char.votes = (char.votes || 0) + quantity;
+
+    // 🌟 액면분할 체크 (33% 한도)
+    const totalCurrentSupply = char.salesCount + char.marketSupply;
+    const saleRatio = char.salesCount / totalCurrentSupply;
+    let splitMessage = '';
+
+    if (saleRatio >= 0.33) {
+      // 1:2 액면분할 진행
+      char.totalSupply *= 2;
+      char.marketSupply *= 2;
+      char.salesCount *= 2;
+      char.votes *= 2;
+
+      // 1) 모든 사용자들의 이 캐릭터 지분을 2배로 확장
+      const allUserVotes = getLocal<UserVote[]>(`user_votes_list_${roomId}`, []);
+      allUserVotes.forEach(v => {
+        if (v.characterId === characterId) {
+          v.votedQuantity *= 2;
+        }
+      });
+      setLocal(`user_votes_list_${roomId}`, allUserVotes);
+
+      // 2) DB 실시간 동기화 (Supabase 지분 2배 벌크 업데이트)
+      if (supabase) {
+        try {
+          const { data: dbVotes } = await supabase.from('user_votes').select('*').eq('character_id', characterId);
+          if (dbVotes) {
+            for (const dbV of dbVotes) {
+              await supabase.from('user_votes').update({
+                voted_quantity: dbV.voted_quantity * 2
+              }).eq('id', dbV.id);
+            }
+          }
+        } catch (err) {
+          console.error('Supabase stock split sync err:', err);
+        }
+      }
+      splitMessage = '\n📈 [안내] 누적 판매량이 공급량의 33%에 도달하여 1:2 액면분할이 즉각 실시되었습니다! 지분과 공급량이 모두 2배로 늘어납니다.';
+    }
 
     const votes = getLocal<UserVote[]>(`user_votes_list_${roomId}`, []);
     const voteIndex = votes.findIndex(v => v.characterId === characterId);
     
+    // 매수 수량 가산
     if (voteIndex >= 0) {
       votes[voteIndex].votedQuantity += quantity;
     } else {
@@ -553,30 +670,35 @@ export const dataService = {
       });
     }
 
-    setLocal(`user_votes_list_${roomId}`, votes);
+    // 액면분할이 이미 앞단에서 votes 가변을 일으켰을 수 있으므로 덮어쓰기 전 동기화
+    if (splitMessage) {
+      const freshVotes = getLocal<UserVote[]>(`user_votes_list_${roomId}`, []);
+      const freshIndex = freshVotes.findIndex(v => v.characterId === characterId);
+      if (freshIndex >= 0) {
+        freshVotes[freshIndex].votedQuantity += quantity;
+        setLocal(`user_votes_list_${roomId}`, freshVotes);
+      }
+    } else {
+      setLocal(`user_votes_list_${roomId}`, votes);
+    }
+
     await this.saveUserAsset(roomId, assets);
 
-    const characters = getLocal<Character[]>(`characters_list_${roomId}`, roomId === 'global' ? INITIAL_CHARACTERS : []);
-    const charIndex = characters.findIndex(c => c.id === characterId);
-    if (charIndex >= 0) {
-      const char = characters[charIndex];
-      char.votes = (char.votes || 0) + quantity;
-      
-      const history = char.voteHistory || [char.votes];
-      const baseVotes = history[0] || 1;
-      const rate = Number(((char.votes - baseVotes) / baseVotes * 100).toFixed(1));
-      
-      char.voteChangeRate = isNaN(rate) ? 0 : rate;
-      char.voteHistory = [
-        ...history.slice(-7),
-        char.votes
-      ];
-      setLocal(`characters_list_${roomId}`, characters);
-    }
+    const history = char.voteHistory || [char.votes];
+    const baseVotes = history[0] || 1;
+    const rate = Number(((char.votes - baseVotes) / baseVotes * 100).toFixed(1));
+    
+    char.voteChangeRate = isNaN(rate) ? 0 : rate;
+    char.voteHistory = [
+      ...history.slice(-7),
+      char.votes
+    ];
+    setLocal(`characters_list_${roomId}`, characters);
 
     if (supabase) {
       try {
-        const voteToUpsert = votes.find(v => v.characterId === characterId);
+        const finalVotes = getLocal<UserVote[]>(`user_votes_list_${roomId}`, []);
+        const voteToUpsert = finalVotes.find(v => v.characterId === characterId);
         if (voteToUpsert) {
           await supabase.from('user_votes').upsert({
             user_id: email,
@@ -586,25 +708,26 @@ export const dataService = {
           });
         }
         
-        if (charIndex >= 0) {
-          const char = characters[charIndex];
-          await supabase.from('characters').upsert({
-            id: char.id,
-            name: char.name,
-            description: char.description,
-            image_url: char.imageUrl,
-            votes: char.votes,
-            vote_change_rate: char.voteChangeRate,
-            vote_history: char.voteHistory,
-            room_id: roomId
-          });
-        }
+        await supabase.from('characters').upsert({
+          id: char.id,
+          name: char.name,
+          description: char.description,
+          image_url: char.imageUrl,
+          votes: char.votes,
+          vote_change_rate: char.voteChangeRate,
+          vote_history: char.voteHistory,
+          room_id: roomId,
+          total_supply: char.totalSupply,
+          market_supply: char.marketSupply,
+          sales_count: char.salesCount,
+          creator: char.creator
+        });
       } catch (err) {
         console.error('Supabase write vote err:', err);
       }
     }
 
-    return { success: true, message: `${selectedCharacterName(characters, characterId)}에게 ${quantity} 포인트를 보냈습니다!` };
+    return { success: true, message: `${char.name}에게 ${quantity} 포인트를 보냈습니다!${splitMessage}` };
   },
 
   // 7. 투표 철회 (방별 격리)
@@ -638,6 +761,8 @@ export const dataService = {
     const charIndex = characters.findIndex(c => c.id === characterId);
     if (charIndex >= 0) {
       const char = characters[charIndex];
+      char.marketSupply = (char.marketSupply !== undefined ? char.marketSupply : 990000) + quantity;
+      char.salesCount = Math.max(0, (char.salesCount || 0) - quantity);
       char.votes = Math.max(0, (char.votes || 0) - quantity);
       
       const history = char.voteHistory || [char.votes];
@@ -675,7 +800,11 @@ export const dataService = {
             votes: char.votes,
             vote_change_rate: char.voteChangeRate,
             vote_history: char.voteHistory,
-            room_id: roomId
+            room_id: roomId,
+            total_supply: char.totalSupply,
+            market_supply: char.marketSupply,
+            sales_count: char.salesCount,
+            creator: char.creator
           });
         }
       } catch (err) {
@@ -724,7 +853,11 @@ export const dataService = {
             votes: char.votes,
             vote_change_rate: char.voteChangeRate,
             vote_history: char.voteHistory,
-            room_id: roomId
+            room_id: roomId,
+            total_supply: char.totalSupply,
+            market_supply: char.marketSupply,
+            sales_count: char.salesCount,
+            creator: char.creator
           });
         }
       } catch (err) {

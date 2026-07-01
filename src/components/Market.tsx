@@ -384,11 +384,53 @@ export const Market: React.FC<MarketProps> = ({ currentRoomId, characters, asset
             </div>
 
             {/* Selected Character Preview - Text only */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '20px', background: 'var(--bg-tertiary)', padding: '12px', borderRadius: '12px' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>내 지갑 캐릭터 보유량</span>
-              <span style={{ fontSize: '0.95rem', fontWeight: 700 }}>
-                {selectedChar.name} (${selectedChar.group?.toUpperCase()}) {getVotedCount(selectedChar.id)} P 보유 중
-              </span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', background: 'var(--bg-tertiary)', padding: '16px', borderRadius: '12px' }}>
+              <div className="flex-between">
+                <span style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>내 지갑 캐릭터 보유량</span>
+                <span style={{ fontSize: '0.9rem', fontWeight: 700 }}>
+                  {getVotedCount(selectedChar.id).toLocaleString()} 장
+                </span>
+              </div>
+              
+              {/* 토크노믹스 현황판 추가 */}
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '10px', marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div className="flex-between" style={{ fontSize: '0.7rem' }}>
+                  <span style={{ color: 'var(--color-text-secondary)' }}>총 발행량</span>
+                  <span style={{ color: 'white', fontWeight: 700 }}>{(selectedChar.totalSupply || 1000000).toLocaleString()} 장</span>
+                </div>
+                <div className="flex-between" style={{ fontSize: '0.7rem' }}>
+                  <span style={{ color: 'var(--color-text-secondary)' }}>시장 공급 대기량</span>
+                  <span style={{ color: 'white', fontWeight: 700 }}>{(selectedChar.marketSupply !== undefined ? selectedChar.marketSupply : 990000).toLocaleString()} 장</span>
+                </div>
+                <div className="flex-between" style={{ fontSize: '0.7rem' }}>
+                  <span style={{ color: 'var(--color-text-secondary)' }}>공급 대비 누적 판매량</span>
+                  <span style={{ color: 'white', fontWeight: 700 }}>{(selectedChar.salesCount || 0).toLocaleString()} 장</span>
+                </div>
+
+                {/* 액면분할 진행도 프로그레스 바 */}
+                {(() => {
+                  const sCount = selectedChar.salesCount || 0;
+                  const mSupply = selectedChar.marketSupply !== undefined ? selectedChar.marketSupply : 990000;
+                  const total = sCount + mSupply;
+                  const ratio = total > 0 ? (sCount / total) : 0;
+                  const progressPct = Math.min(100, Math.round((ratio / 0.33) * 100));
+                  
+                  return (
+                    <div style={{ marginTop: '4px' }}>
+                      <div className="flex-between" style={{ fontSize: '0.65rem', marginBottom: '4px' }}>
+                        <span style={{ color: 'var(--color-warning)' }}>📈 액면분할 트리거 진행도 (목표 33% 판매)</span>
+                        <span style={{ color: 'var(--color-warning)', fontWeight: 700 }}>{progressPct}% ({(ratio * 100).toFixed(1)}% / 33.0%)</span>
+                      </div>
+                      <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.08)', borderRadius: '3px', overflow: 'hidden' }}>
+                        <div style={{ width: `${progressPct}%`, height: '100%', background: 'linear-gradient(90deg, #eab308 0%, #22c55e 100%)', borderRadius: '3px', transition: 'width 0.3s ease' }} />
+                      </div>
+                      <span style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.4)', display: 'block', marginTop: '4px', lineHeight: '1.3' }}>
+                        * 공급량 중 33%가 완판되면 즉시 1:2 액면분할(주식수 및 남은 공급량 2배 확장)이 실행됩니다.
+                      </span>
+                    </div>
+                  );
+                })()}
+              </div>
             </div>
 
             {/* Quantity Input */}
