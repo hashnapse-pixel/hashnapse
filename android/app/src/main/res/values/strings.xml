@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">FanStock</string>
+    <string name="title_activity_main">FanStock</string>
+    <string name="package_name">com.fanstock.app</string>
+    <string name="custom_url_scheme">com.fanstock.app</string>
+</resources>

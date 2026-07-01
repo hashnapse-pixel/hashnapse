@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>해시냅스 - 초대받은 방으로 이동</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #05070c;
+      --accent-neon: #ff007f;
+      --accent-blue: #00f0ff;
+      --text-color: #f3f4f6;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Cosmic Background Glows */
+    .glow-1 {
+      position: absolute;
+      top: -20%;
+      left: -20%;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(255, 0, 127, 0.15) 0%, rgba(0,0,0,0) 70%);
+      filter: blur(80px);
+      z-index: 1;
+    }
+    .glow-2 {
+      position: absolute;
+      bottom: -20%;
+      right: -20%;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(0, 240, 255, 0.15) 0%, rgba(0,0,0,0) 70%);
+      filter: blur(80px);
+      z-index: 1;
+    }
+
+    .container {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      padding: 30px;
+      max-width: 420px;
+      width: 90%;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 24px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    }
+
+    .logo-glow {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 24px;
+      background: linear-gradient(135deg, var(--accent-neon) 0%, var(--accent-blue) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 40px rgba(255, 0, 127, 0.3);
+    }
+
+    .status-text {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #fff;
+    }
+
+    .sub-text {
+      font-size: 0.85rem;
+      color: #9ca3af;
+      line-height: 1.6;
+      margin-bottom: 30px;
+    }
+
+    /* Neon Spinner */
+    .spinner-box {
+      width: 70px;
+      height: 70px;
+      margin: 0 auto 30px;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .circle-border-1 {
+      width: 70px;
+      height: 70px;
+      padding: 3px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 50%;
+      background: linear-gradient(0deg, rgba(255,0,127,0.1) 33%, rgba(255,0,127,1) 100%);
+      animation: spin 1s linear infinite;
+    }
+
+    .circle-border-2 {
+      width: 50px;
+      height: 50px;
+      padding: 3px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 50%;
+      background: linear-gradient(0deg, rgba(0,240,255,0.1) 33%, rgba(0,240,255,1) 100%);
+      animation: spin 1.2s linear infinite reverse;
+      position: absolute;
+    }
+
+    .circle-core {
+      width: 30px;
+      height: 30px;
+      background-color: var(--bg-color);
+      border-radius: 50%;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Play store button */
+    .store-btn {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, var(--accent-neon) 0%, #d8006b 100%);
+      border: none;
+      border-radius: 16px;
+      color: white;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 4px 20px rgba(255, 0, 127, 0.4);
+      transition: all 0.2s ease;
+    }
+
+    .store-btn:active {
+      transform: translateY(1px);
+      box-shadow: 0 2px 10px rgba(255, 0, 127, 0.25);
+    }
+  </style>
+</head>
+<body>
+  <div class="glow-1"></div>
+  <div class="glow-2"></div>
+
+  <div class="container">
+    <div class="logo-glow">Hashnapse</div>
+    
+    <div class="spinner-box">
+      <div class="circle-border-1">
+        <div class="circle-core"></div>
+      </div>
+      <div class="circle-border-2">
+        <div class="circle-core"></div>
+      </div>
+    </div>
+
+    <div class="status-text" id="statusMsg">스페이스 연결 중...</div>
+    <p class="sub-text" id="subMsg">
+      앱이 설치되어 있다면 자동으로 해시냅스가 실행됩니다.<br>
+      반응이 없거나 설치되어 있지 않다면 아래 버튼을 눌러 앱을 설치해 주세요.
+    </p>
+
+    <a href="https://play.google.com/store/apps/details?id=com.inis.hashnapse" class="store-btn" id="storeLink">
+      Google Play에서 설치하기
+    </a>
+  </div>
+
+  <script>
+    // URL에서 room 파라미터 획득
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomId = urlParams.get('room') || urlParams.get('id') || '';
+    
+    // 플레이스토어 링크 (실제 앱 배포 주소로 변경하여 사용 가능)
+    const playStoreUrl = 'https://play.google.com/store/apps/details?id=com.inis.hashnapse';
+    const customScheme = `hashnapse://invite?room=${roomId}`;
+    
+    const statusMsg = document.getElementById('statusMsg');
+    const storeLink = document.getElementById('storeLink');
+
+    // 모바일 OS 판별
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    const isAndroid = /android/i.test(userAgent);
+    const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
+
+    // 만약 iOS인 경우 마켓 링크 변경 가능 (추가 대응 가능하도록 설정)
+    if (isIOS) {
+      storeLink.innerText = 'App Store에서 설치하기';
+      storeLink.href = 'https://apps.apple.com/app/hashnapse'; // iOS 스토어 ID 대응
+    }
+
+    if (roomId) {
+      statusMsg.innerText = '초대받은 방으로 안내하고 있습니다...';
+      
+      // 모바일 기기일 때만 앱 열기 시도
+      if (isAndroid || isIOS) {
+        // 커스텀 스키마 실행 시도
+        window.location.href = customScheme;
+        
+        // 1.5초 이내에 앱으로 이탈되지 않았다면 플레이스토어/앱스토어로 전환
+        const start = Date.now();
+        setTimeout(() => {
+          // 사용자가 앱을 열어서 브라우저가 백그라운드로 갔다면,
+          // 딜레이 측정 시간이 1500ms보다 훨씬 지연되게 됨 (OS가 브라우저 스레드를 정지시킴)
+          // 따라서 딜레이 차이가 크지 않을 때(즉 앱이 열리지 않고 계속 브라우저 화면인 상태)에만 마켓으로 리다이렉트
+          if (Date.now() - start < 1800) {
+            window.location.href = isIOS ? 'https://apps.apple.com/app/hashnapse' : playStoreUrl;
+          }
+        }, 1500);
+      } else {
+        // 데스크톱인 경우 안내
+        statusMsg.innerText = '모바일 기기에서 접속해주세요';
+        document.getElementById('subMsg').innerHTML = '해시냅스는 모바일 앱 전용 서비스입니다.<br>스마트폰으로 공유받은 초대 링크를 열어주세요.';
+      }
+    } else {
+      statusMsg.innerText = '올바르지 않은 초대 링크입니다.';
+      document.getElementById('subMsg').innerText = '방 정보가 누락되었습니다. 링크를 다시 확인해주세요.';
+    }
+  </script>
+</body>
+</html>
